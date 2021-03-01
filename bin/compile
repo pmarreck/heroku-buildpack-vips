@@ -1,79 +1,119 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-set -e
+set -eo pipefail
 
-version=8.6.2
+# debug
+# set -x
 
-BUILD_DIR=$1
-CACHE_DIR=$2
-BUILDPACK_NAME=vips
+BUILD_DIR="$1"
+CACHE_DIR="$2"
+BUILDPACK_NAME="vips"
 
-function indent() {
-  c='s/^/       /'
-  case $(uname) in
-    Darwin) sed -l "$c";;
-    *)      sed -u "$c";;
-  esac
+# Set vips version if not already set
+export VIPS_VERSION=${VIPS_VERSION:-8.10.5}
+### Prereqs are now installed via apt buildpack
+# export WEBP_VERSION=0.6.0
+# export ORC_VERSION=0.4.18
+# export TIFF_VERSION=4.0.3
+# export GETTEXT_VERSION=0.19.1
+# export SVG_VERSION=2.40.15
+# export GIF_VERSION=5.1.4
+export OUT_DIR=${OUT_DIR:-$(pwd)}
+export BUILD_PATH=/tmp
+export OUT_PATH=$OUT_DIR/app/vendor/vips
+export PKG_CONFIG_PATH=$OUT_PATH/lib/pkgconfig:$PKG_CONFIG_PATH
+export PATH=$OUT_PATH/bin:$PATH
+
+# Remove out path if already exists
+rm -Rf $OUT_PATH
+
+buildpack_path=$(cd $(dirname $(dirname $0)); pwd)
+
+source ${buildpack_path}/lib/helper_funcs.sh
+
+# echo "Vendoring binaries" | arrow
+
+# vendor "wget https://www.m-kast.com/files/libvips-8.7.0-ubuntu18.04.tgz" "$BUILD_DIR/vendor/vips" # FIXME: unharcode version
+
+###############
+#     VIPS    #
+###############
+# first argument is the build path, then the cache path, then the vips version
+function get_and_build_vips {
+    build_path="$1"
+    cache_path="$2"
+    local version="$3"
+    vipsdirname="vips-$version"
+    # Download vips source if it's not already there
+    if [ ${force_fetch} = true ] || [ ! -d ${cache_path}/$(vipsdirname) ]; then
+      clean_vips_downloads $cache_path
+      vips_changed=true
+      pushd $cache_path
+      echo "Downloading vips source via git clone depth 1 with branch/tag v$version" | arrow
+      git clone --depth 1 -b "v$version" git://github.com/libvips/libvips.git $(vipsdirname)
+      popd #$cache_path
+    else
+      output_section "Using cached ${vipsdirname}"
+    fi
+    # curl -L https://github.com/jcupitt/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz -o vips-$VIPS_VERSION.tar.gz
+    # Unzip
+    # tar -xvf vips-$VIPS_VERSION.tar.gz
+    # Get into vips folder
+    pushd $cache_path
+    pushd $vipsdirname
+    # Configure build and output everything
+    echo "Configuring vips" | arrow
+    ./configure --prefix $OUT_PATH --disable-dependency-tracking \
+    --disable-debug --disable-introspection --without-python \
+    --without-magick
+    # --with-giflib-includes=$OUT_PATH/include \
+    # --with-giflib-libraries=$OUT_PATH/lib
+    # Make
+    echo "Making vips" | arrow
+    make
+    # install vips
+    echo "Installing vips" | arrow
+    make install
+    popd # $vipsdirname
+    popd # cache_path
 }
 
-arrow() {
-  sed -u 's/^/-----> /'
-}
+get_and_build_vips $BUILD_DIR $CACHE_DIR $VIPS_VERSION
 
-function vendor() {
-  binary="$1"
-  path="$2"
+# echo "Tweaking glib include paths" | arrow
 
-  echo "Fetching $binary" | indent
-  mkdir -p $path
-  curl $binary -s -o - | tar xz -C $path -f -
+# export CPPPATH="$BUILD_DIR/vendor/vips/include/glib-2.0:$BUILD_DIR/vendor/vips/lib/glib-2.0/include:$CPPPATH"
+# export CPATH="$BUILD_DIR/vendor/vips/include/glib-2.0:$BUILD_DIR/vendor/vips/lib/glib-2.0/include:$CPATH"
 
-  if [ -d "$path/bin" ]; then
-    export PATH=$path/bin:$PATH
-  fi
+# echo "Configuring build environment" | arrow
 
-  if [ -d "$path/lib/pkgconfig" ]; then
-    # pkg-config should handle compiler options (if used)
-    export PKG_CONFIG_PATH="$path/lib/pkgconfig:$PKG_CONFIG_PATH"
-  fi
+# cat <<EOF > export
+# export PATH="$PATH:\$PATH"
+# export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
+# export LIBRARY_PATH="\$LIBRARY_PATH:$LIBRARY_PATH"
+# export PKG_CONFIG_PATH="\$PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
+# export CPPPATH="\$CPPPATH:$CPPPATH"
+# export CPATH="\$CPATH:$CPATH"
+# EOF
 
-  # standard paths
-  export CPPPATH="$path/include:$CPPPATH"
-  export CPATH="$path/include:$CPATH"
-  export LIBRARY_PATH="$path/lib:$LIBRARY_PATH"
+# echo "Building runtime environment" | arrow
+# mkdir -p $BUILD_DIR/.profile.d
 
-  export LD_LIBRARY_PATH="$path/lib:$LD_LIBRARY_PATH"
-}
+# cat <<EOF > $BUILD_DIR/.profile.d/$BUILDPACK_NAME.sh
+# export PATH="${PATH//$BUILD_DIR//app}:\$PATH"
+# export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:${LD_LIBRARY_PATH//$BUILD_DIR//app}"
+# export LIBRARY_PATH="\$LIBRARY_PATH:${LIBRARY_PATH//$BUILD_DIR//app}"
+# export PKG_CONFIG_PATH="\$PKG_CONFIG_PATH:${PKG_CONFIG_PATH//$BUILD_DIR//app}"
+# export CPPPATH="\$CPPPATH:${CPPPATH//$BUILD_DIR//app}"
+# export CPATH="\$CPATH:${CPATH//$BUILD_DIR//app}"
+# EOF
 
-echo "Vendoring binaries" | arrow
+###############
+#    Output   #
+###############
 
-vendor "wget https://www.m-kast.com/files/libvips-8.7.0-ubuntu18.04.tgz" "$BUILD_DIR/vendor/vips" # FIXME: unharcode version
-
-echo "Tweaking glib include paths" | arrow
-
-export CPPPATH="$BUILD_DIR/vendor/vips/include/glib-2.0:$BUILD_DIR/vendor/vips/lib/glib-2.0/include:$CPPPATH"
-export CPATH="$BUILD_DIR/vendor/vips/include/glib-2.0:$BUILD_DIR/vendor/vips/lib/glib-2.0/include:$CPATH"
-
-echo "Configuring build environment" | arrow
-
-cat <<EOF > export
-export PATH="$PATH:\$PATH"
-export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
-export LIBRARY_PATH="\$LIBRARY_PATH:$LIBRARY_PATH"
-export PKG_CONFIG_PATH="\$PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
-export CPPPATH="\$CPPPATH:$CPPPATH"
-export CPATH="\$CPATH:$CPATH"
-EOF
-
-echo "Building runtime environment" | arrow
-mkdir -p $BUILD_DIR/.profile.d
-
-cat <<EOF > $BUILD_DIR/.profile.d/$BUILDPACK_NAME.sh
-export PATH="${PATH//$BUILD_DIR//app}:\$PATH"
-export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:${LD_LIBRARY_PATH//$BUILD_DIR//app}"
-export LIBRARY_PATH="\$LIBRARY_PATH:${LIBRARY_PATH//$BUILD_DIR//app}"
-export PKG_CONFIG_PATH="\$PKG_CONFIG_PATH:${PKG_CONFIG_PATH//$BUILD_DIR//app}"
-export CPPPATH="\$CPPPATH:${CPPPATH//$BUILD_DIR//app}"
-export CPATH="\$CPATH:${CPATH//$BUILD_DIR//app}"
-EOF
+# Get into output path
+cd $OUT_PATH
+# Clean useless files
+rm -rf $OUT_PATH/share/{doc,gtk-doc}
