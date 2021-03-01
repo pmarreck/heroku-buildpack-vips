@@ -46,7 +46,7 @@ function get_and_build_vips {
     local version="$3"
     vipsdirname="vips-$version"
     # Download vips source if it's not already there
-    if [ ${force_fetch} = true ] || [ ! -d ${cache_path}/${vipsdirname} ]; then
+    if [ "${force_fetch}" = true ] || [ ! -d "${cache_path}/${vipsdirname}" ]; then
       clean_vips_downloads $cache_path
       vips_changed=true
       pushd $cache_path
@@ -64,6 +64,9 @@ function get_and_build_vips {
     pushd $vipsdirname
     # Configure build and output everything
     echo "Configuring vips" | arrow
+    cp /usr/share/gtk-doc/data/gtk-doc.make doc/
+    touch doc/gtk-doc.make
+    autoreconf -fvi
     ./configure --prefix $OUT_PATH --disable-dependency-tracking \
     --disable-debug --disable-introspection --without-python \
     --without-magick
