@@ -46,12 +46,12 @@ function get_and_build_vips {
     local version="$3"
     vipsdirname="vips-$version"
     # Download vips source if it's not already there
-    if [ ${force_fetch} = true ] || [ ! -d ${cache_path}/$(vipsdirname) ]; then
+    if [ ${force_fetch} = true ] || [ ! -d ${cache_path}/${vipsdirname} ]; then
       clean_vips_downloads $cache_path
       vips_changed=true
       pushd $cache_path
       echo "Downloading vips source via git clone depth 1 with branch/tag v$version" | arrow
-      git clone --depth 1 -b "v$version" git://github.com/libvips/libvips.git $(vipsdirname)
+      git clone --depth 1 -b "v$version" git://github.com/libvips/libvips.git ${vipsdirname}
       popd #$cache_path
     else
       output_section "Using cached ${vipsdirname}"
