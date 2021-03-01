@@ -64,7 +64,9 @@ function get_and_build_vips {
     pushd $vipsdirname
     # Configure build and output everything
     echo "Configuring vips" | arrow
-    cp /usr/share/gtk-doc/data/gtk-doc.make doc/
+    # cp /usr/share/gtk-doc/data/gtk-doc.make doc/
+    gtkdocmake=$(find / -name gtk-doc.make -print -quit | head -n 1)
+    echo "gtkdocmake is at: $gtkdocmake"
     touch doc/gtk-doc.make
     autoreconf -fvi
     ./configure --prefix $OUT_PATH --disable-dependency-tracking \
