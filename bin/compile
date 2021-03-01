@@ -65,7 +65,7 @@ function get_and_build_vips {
     # Configure build and output everything
     echo "Configuring vips" | arrow
     # cp /usr/share/gtk-doc/data/gtk-doc.make doc/
-    gtkdocmake=$(find / -name gtk-doc.make -print -quit | head -n 1)
+    gtkdocmake=$(find / -name gtk-doc.make -print -quit 2>/dev/null | head -n 1)
     echo "gtkdocmake is at: $gtkdocmake"
     touch doc/gtk-doc.make
     autoreconf -fvi
