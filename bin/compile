@@ -43,7 +43,7 @@ source ${buildpack_path}/lib/helper_funcs.sh
 function install_apt_deps {
   # apt install everything in the Aptfile, filtering out comments and :repo:'s
   # Went this route because I couldn't figure out how to get this buildpack to depend on the apt buildpack and work that way
-  cat ${buildpack_path}/Aptfile | grep -v -s -e '^#' | grep -v -s -e "^:repo:" | xargs sudo apt install -y
+  cat ${buildpack_path}/Aptfile | grep -v -s -e '^#' | grep -v -s -e "^:repo:" | xargs apt install -y
 }
 
 ############
@@ -106,8 +106,8 @@ force_fetch=true # for debugging
     make
     # install vips
     echo "Installing vips" | arrow
-    sudo make install
-    sudo ldconfig || :
+    make install
+    ldconfig || :
     popd # $vipsdirname
     popd # cache_path
 }
