@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function indent() {
+indent() {
   c='s/^/       /'
   case $(uname) in
     Darwin) sed -l "$c";;
@@ -18,7 +18,7 @@ arrow() {
 #
 #     output_line "Cloning repository"
 #
-function output_line() {
+output_line() {
   local spacing="      "
   echo "${spacing} $1"
 }
@@ -29,25 +29,29 @@ function output_line() {
 #
 #     output_section "Application tasks"
 #
-function output_section() {
+output_section() {
   local indentation="----->"
   echo "${indentation} $1"
 }
 
-function output_warning() {
+output_warning() {
   local spacing="      "
   echo -e "${spacing} \e[31m$1\e[0m"
 }
 
-function output_stderr() { 
+output_stderr() { 
   # Outputs to stderr in case it is inside a function so it does not
   # disturb the return value. Useful for debugging.
   echo "$@" 1>&2; 
 }
 
-function clean_vips_downloads() {
+clean_vips_downloads() {
   local cache_path=$1
   rm -rf ${cache_path}/vips-*
+}
+
+find_missing_executable() {
+  $(find / -name "$1" -executable -print -quit 2>/dev/null || : )
 }
 
 # function vendor() {

@@ -68,7 +68,7 @@ function get_and_build_vips {
     local version="$3"
     vipsdirname="vips-$version"
     # Download vips source if it's not already there, or if it's forced
-force_fetch=true # for debugging
+    # force_fetch=true # for debugging
     if [ "${force_fetch}" = true ]; then
       echo "Forcing redownload of vips"
     fi
@@ -100,7 +100,10 @@ force_fetch=true # for debugging
     # autoreconf -fvi || :
     # neuter gtkdocize which won't fucking install to PATH for some reason despite using the right apt dependency
     # also, we don't need docs
-    gtkdocize() { return 0; }
+    # also, this didn't work inside autogen.sh for some strange reason
+    # gtkdocize() { return 0; }
+    # HERE IS GTKDOCIZE:
+    echo find_missing_executable gtkdocize
     ./autogen.sh --prefix $OUT_PATH --disable-gtk-doc --disable-gtk-doc-html --disable-gtk-doc-pdf --without-magick --disable-dependency-tracking --disable-static --disable-debug
     # ./configure --help  # remove or comment me out; shows possible options
     # ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-magick --without-analyze --without-radiance
