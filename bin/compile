@@ -76,6 +76,7 @@ function get_and_build_vips {
     # touch doc/gtk-doc.make
     # autoreconf -fvi || :
     # ./autogen.sh
+    ./configure --help  # remove or comment me out; shows possible options
     ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-magick --without-analyze --without-radiance
     # --with-giflib-includes=$OUT_PATH/include \
     # --with-giflib-libraries=$OUT_PATH/lib
@@ -85,6 +86,7 @@ function get_and_build_vips {
     # install vips
     echo "Installing vips" | arrow
     make install
+    ldconfig || :
     popd # $vipsdirname
     popd # cache_path
 }
