@@ -36,6 +36,15 @@ source ${buildpack_path}/lib/helper_funcs.sh
 
 # vendor "wget https://www.m-kast.com/files/libvips-8.7.0-ubuntu18.04.tgz" "$BUILD_DIR/vendor/vips" # FIXME: unharcode version
 
+############
+#   RUST   #
+############
+
+function get_rust {
+  curl https://sh.rustup.rs -sSf | sh -s -- -y
+  export PATH="$HOME/.cargo/bin:$PATH"
+}
+
 ###############
 #     VIPS    #
 ###############
@@ -53,12 +62,12 @@ function get_and_build_vips {
       clean_vips_downloads $cache_path
       vips_changed=true
       pushd $cache_path
-      # echo "Downloading vips source via git clone depth 1 with branch/tag v$version" | arrow
-      echo "Downloading vips source from github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz ..."
-      curl -L https://github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz -o $vipsdirname.tar.gz
+      echo "Downloading vips source via git clone depth 1 with branch/tag v$version" | arrow
+      git clone --depth 1 -b "v$version" git://github.com/libvips/libvips.git ${vipsdirname}
+      # echo "Downloading vips source from github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz ..."
+      # curl -L https://github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz -o $vipsdirname.tar.gz
       # unzip
-      tar -xvf $vipsdirname.tar.gz
-      # git clone --depth 1 -b "v$version" git://github.com/libvips/libvips.git ${vipsdirname}
+      # tar -xvf $vipsdirname.tar.gz
       popd #$cache_path
     else
       output_section "Using cached ${vipsdirname}"
@@ -75,9 +84,9 @@ function get_and_build_vips {
     # cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
     # touch doc/gtk-doc.make
     # autoreconf -fvi || :
-    # ./autogen.sh
+    ./autogen.sh
     ./configure --help  # remove or comment me out; shows possible options
-    ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-magick --without-analyze --without-radiance
+    # ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-magick --without-analyze --without-radiance
     # --with-giflib-includes=$OUT_PATH/include \
     # --with-giflib-libraries=$OUT_PATH/lib
     # Make
@@ -85,12 +94,13 @@ function get_and_build_vips {
     make
     # install vips
     echo "Installing vips" | arrow
-    make install
-    ldconfig || :
+    sudo make install
+    sudo ldconfig || :
     popd # $vipsdirname
     popd # cache_path
 }
 
+get_rust
 get_and_build_vips $BUILD_DIR $CACHE_DIR $VIPS_VERSION
 
 # echo "Tweaking glib include paths" | arrow
