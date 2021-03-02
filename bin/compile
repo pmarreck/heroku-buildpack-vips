@@ -10,20 +10,19 @@ BUILD_DIR="$1"
 CACHE_DIR="$2"
 BUILDPACK_NAME="vips"
 
+# set a default LANG if it does not exist in the environment
+export LANG=${LANG:-en_US.UTF-8}
 # Set vips version if not already set
 export VIPS_VERSION=${VIPS_VERSION:-8.10.5}
 ### Prereqs are now installed via apt buildpack
-# export WEBP_VERSION=0.6.0
-# export ORC_VERSION=0.4.18
-# export TIFF_VERSION=4.0.3
-# export GETTEXT_VERSION=0.19.1
-# export SVG_VERSION=2.40.15
-# export GIF_VERSION=5.1.4
 export OUT_DIR="" #${OUT_DIR:-$(pwd)}
 # export BUILD_PATH=/tmp
 export OUT_PATH=$OUT_DIR/app/vendor/vips
+export VIPSHOME=$OUT_PATH
 export PKG_CONFIG_PATH=$OUT_PATH/lib/pkgconfig:$PKG_CONFIG_PATH
-export PATH=$OUT_PATH/bin:$PATH
+export LD_LIBRARY_PATH=$OUT_PATH/lib:$LD_LIBRARY_PATH
+export MANPATH=$VIPSHOME/man:$MANPATH
+export PATH=$VIPSHOME/bin:$PATH
 
 # rust and cargo env vars
 export CARGO_HOME=$OUT_DIR/app/vendor/.cargo
@@ -31,7 +30,7 @@ export RUSTUP_HOME=$OUT_DIR/app/vendor/.rust
 export PATH=$OUT_DIR/app/vendor/.cargo/bin:$PATH
 
 # Remove out path if already exists
-rm -Rf $OUT_PATH
+# rm -Rf $OUT_PATH
 
 buildpack_path=$(cd $(dirname $(dirname $0)); pwd)
 
@@ -101,8 +100,8 @@ function get_and_build_vips {
     echo "Configuring vips" | arrow
     # cp /usr/share/gtk-doc/data/gtk-doc.make doc/
     # the || : is like an "or true", forces find to not exitcode 1 if there's a permissions error
-    # gtkdocmake=$(find / -name gtk-doc.make -print -quit 2>/dev/null || : )
-    # echo "gtkdocmake is at: $gtkdocmake"
+    gtkdocm4=$(find / -name gtk-doc.m4 -print -quit 2>/dev/null || : )
+    echo "gtkdocm4 is at: $gtkdocm4"
     # cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
     # touch doc/gtk-doc.make
     # autoreconf -fvi || :
@@ -128,37 +127,46 @@ function get_and_build_vips {
     popd # cache_path
 }
 
+echo "Tweaking glib include paths" | arrow
+
+export CPPPATH="$BUILD_DIR/vendor/vips/include/glib-2.0:$BUILD_DIR/vendor/vips/lib/glib-2.0/include:$CPPPATH"
+export CPATH="$BUILD_DIR/vendor/vips/include/glib-2.0:$BUILD_DIR/vendor/vips/lib/glib-2.0/include:$CPATH"
+
+echo "Configuring build environment" | arrow
+
+cat <<EOF > export
+export PATH="$PATH:\$PATH"
+export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
+export LIBRARY_PATH="\$LIBRARY_PATH:$LIBRARY_PATH"
+export PKG_CONFIG_PATH="\$PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
+export CPPPATH="\$CPPPATH:$CPPPATH"
+export CPATH="\$CPATH:$CPATH"
+EOF
+
+echo "Building runtime environment" | arrow
+mkdir -p $BUILD_DIR/.profile.d
+
+cat <<EOF > $BUILD_DIR/.profile.d/$BUILDPACK_NAME.sh
+export PATH="${PATH//$BUILD_DIR//app}:\$PATH"
+export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:${LD_LIBRARY_PATH//$BUILD_DIR//app}"
+export LIBRARY_PATH="\$LIBRARY_PATH:${LIBRARY_PATH//$BUILD_DIR//app}"
+export PKG_CONFIG_PATH="\$PKG_CONFIG_PATH:${PKG_CONFIG_PATH//$BUILD_DIR//app}"
+export CPPPATH="\$CPPPATH:${CPPPATH//$BUILD_DIR//app}"
+export CPATH="\$CPATH:${CPATH//$BUILD_DIR//app}"
+echo "LANG=\$LANG"
+echo "VIPS_VERSION=\$VIPS_VERSION"
+echo "VIPSHOME=\$VIPSHOME"
+echo "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH"
+echo "PKG_CONFIG_PATH=\$PKG_CONFIG_PATH"
+echo "MANPATH=\$MANPATH"
+echo "CPPPATH=\$CPPPATH"
+echo "CPATH=\$CPATH"
+echo "PATH=\$PATH"
+EOF
+
 # install_apt_deps
 get_rust
 get_and_build_vips $BUILD_DIR $CACHE_DIR $VIPS_VERSION
-
-# echo "Tweaking glib include paths" | arrow
-
-# export CPPPATH="$BUILD_DIR/vendor/vips/include/glib-2.0:$BUILD_DIR/vendor/vips/lib/glib-2.0/include:$CPPPATH"
-# export CPATH="$BUILD_DIR/vendor/vips/include/glib-2.0:$BUILD_DIR/vendor/vips/lib/glib-2.0/include:$CPATH"
-
-# echo "Configuring build environment" | arrow
-
-# cat <<EOF > export
-# export PATH="$PATH:\$PATH"
-# export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
-# export LIBRARY_PATH="\$LIBRARY_PATH:$LIBRARY_PATH"
-# export PKG_CONFIG_PATH="\$PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
-# export CPPPATH="\$CPPPATH:$CPPPATH"
-# export CPATH="\$CPATH:$CPATH"
-# EOF
-
-# echo "Building runtime environment" | arrow
-# mkdir -p $BUILD_DIR/.profile.d
-
-# cat <<EOF > $BUILD_DIR/.profile.d/$BUILDPACK_NAME.sh
-# export PATH="${PATH//$BUILD_DIR//app}:\$PATH"
-# export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:${LD_LIBRARY_PATH//$BUILD_DIR//app}"
-# export LIBRARY_PATH="\$LIBRARY_PATH:${LIBRARY_PATH//$BUILD_DIR//app}"
-# export PKG_CONFIG_PATH="\$PKG_CONFIG_PATH:${PKG_CONFIG_PATH//$BUILD_DIR//app}"
-# export CPPPATH="\$CPPPATH:${CPPPATH//$BUILD_DIR//app}"
-# export CPATH="\$CPATH:${CPATH//$BUILD_DIR//app}"
-# EOF
 
 ###############
 #    Output   #
