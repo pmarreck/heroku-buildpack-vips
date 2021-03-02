@@ -98,8 +98,8 @@ force_fetch=true # for debugging
     # cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
     # touch doc/gtk-doc.make
     # autoreconf -fvi || :
-    ./autogen.sh
-    ./configure --help  # remove or comment me out; shows possible options
+    ./autogen.sh --prefix $OUT_PATH --disable-gtk-doc --disable-gtk-doc-html --disable-gtk-doc-pdf --without-magick --disable-dependency-tracking --disable-static --disable-debug
+    # ./configure --help  # remove or comment me out; shows possible options
     # ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-magick --without-analyze --without-radiance
     # --with-giflib-includes=$OUT_PATH/include \
     # --with-giflib-libraries=$OUT_PATH/lib
