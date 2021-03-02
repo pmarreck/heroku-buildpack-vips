@@ -19,8 +19,8 @@ export VIPS_VERSION=${VIPS_VERSION:-8.10.5}
 # export GETTEXT_VERSION=0.19.1
 # export SVG_VERSION=2.40.15
 # export GIF_VERSION=5.1.4
-export OUT_DIR=${OUT_DIR:-$(pwd)}
-export BUILD_PATH=/tmp
+export OUT_DIR="" #${OUT_DIR:-$(pwd)}
+# export BUILD_PATH=/tmp
 export OUT_PATH=$OUT_DIR/app/vendor/vips
 export PKG_CONFIG_PATH=$OUT_PATH/lib/pkgconfig:$PKG_CONFIG_PATH
 export PATH=$OUT_PATH/bin:$PATH
@@ -103,8 +103,8 @@ function get_and_build_vips {
     # the || : is like an "or true", forces find to not exitcode 1 if there's a permissions error
     # gtkdocmake=$(find / -name gtk-doc.make -print -quit 2>/dev/null || : )
     # echo "gtkdocmake is at: $gtkdocmake"
-    cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
-    touch doc/gtk-doc.make
+    # cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
+    # touch doc/gtk-doc.make
     autoreconf -fvi || :
     # neuter gtkdocize which won't fucking install to PATH for some reason despite using the right apt dependency
     # also, we don't need docs
@@ -165,6 +165,7 @@ get_and_build_vips $BUILD_DIR $CACHE_DIR $VIPS_VERSION
 ###############
 
 # Get into output path
-cd $OUT_PATH
+pushd $OUT_PATH
 # Clean useless files
-rm -rf $OUT_PATH/share/{doc,gtk-doc}
+rm -rf share/{doc,gtk-doc}
+popd
