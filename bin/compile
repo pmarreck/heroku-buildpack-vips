@@ -71,6 +71,7 @@ function get_and_build_vips {
     cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
     touch doc/gtk-doc.make
     autoreconf -fvi || :
+    ./autogen.sh
     ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-python --without-magick --without-analyze --without-radiance
     # --with-giflib-includes=$OUT_PATH/include \
     # --with-giflib-libraries=$OUT_PATH/lib
