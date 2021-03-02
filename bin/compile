@@ -25,6 +25,11 @@ export OUT_PATH=$OUT_DIR/app/vendor/vips
 export PKG_CONFIG_PATH=$OUT_PATH/lib/pkgconfig:$PKG_CONFIG_PATH
 export PATH=$OUT_PATH/bin:$PATH
 
+# rust and cargo env vars
+export CARGO_HOME=$OUT_DIR/app/vendor/.cargo
+export RUSTUP_HOME=$OUT_DIR/app/vendor/.rust
+export PATH=$OUT_DIR/app/vendor/.cargo/bin:$PATH
+
 # Remove out path if already exists
 rm -Rf $OUT_PATH
 
@@ -53,8 +58,11 @@ source ${buildpack_path}/lib/helper_funcs.sh
 ############
 
 function get_rust {
+  echo "Getting rust" | arrow
+  echo "CARGO_HOME=$CARGO_HOME"
+  echo "RUSTUP_HOME=$RUSTUP_HOME"
   curl https://sh.rustup.rs -sSf | sh -s -- -y
-  source $HOME/.cargo/env
+  source $CARGO_HOME/env
   # export PATH="$HOME/.cargo/bin:$PATH"
 }
 
@@ -91,19 +99,19 @@ function get_and_build_vips {
     pushd $vipsdirname
     # Configure build and output everything
     echo "Configuring vips" | arrow
-    # cp /usr/share/gtk-doc/data/gtk-doc.make doc/
+    cp /usr/share/gtk-doc/data/gtk-doc.make doc/
     # the || : is like an "or true", forces find to not exitcode 1 if there's a permissions error
     # gtkdocmake=$(find / -name gtk-doc.make -print -quit 2>/dev/null || : )
     # echo "gtkdocmake is at: $gtkdocmake"
-    # cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
-    # touch doc/gtk-doc.make
-    # autoreconf -fvi || :
+    cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
+    touch doc/gtk-doc.make
+    autoreconf -fvi || :
     # neuter gtkdocize which won't fucking install to PATH for some reason despite using the right apt dependency
     # also, we don't need docs
     # also, this didn't work inside autogen.sh for some strange reason
     # gtkdocize() { return 0; }
-    # HERE IS GTKDOCIZE:
-    echo $(find_missing_executable gtkdocize)
+    # HERE IS GTKDOCIZE: edit: it's completely missing.
+    # echo $(find_missing_executable gtkdocize)
     ./autogen.sh --prefix $OUT_PATH --disable-gtk-doc --disable-gtk-doc-html --disable-gtk-doc-pdf --without-magick --disable-dependency-tracking --disable-static --disable-debug
     # ./configure --help  # remove or comment me out; shows possible options
     # ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-magick --without-analyze --without-radiance
