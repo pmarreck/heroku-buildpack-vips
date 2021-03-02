@@ -66,13 +66,12 @@ function get_and_build_vips {
     echo "Configuring vips" | arrow
     # cp /usr/share/gtk-doc/data/gtk-doc.make doc/
     # the || : is like an "or true", forces find to not exitcode 1 if there's a permissions error
-    gtkdocmake=$(find / -name gtk-doc.make -print -quit 2>/dev/null || : )
-    echo "gtkdocmake is at: $gtkdocmake"
+    # gtkdocmake=$(find / -name gtk-doc.make -print -quit 2>/dev/null || : )
+    # echo "gtkdocmake is at: $gtkdocmake"
+    cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
     touch doc/gtk-doc.make
     autoreconf -fvi
-    ./configure --prefix $OUT_PATH --disable-dependency-tracking \
-    --disable-debug --disable-introspection --without-python \
-    --without-magick
+    ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-python --without-magick --without-analyze --without-radiance
     # --with-giflib-includes=$OUT_PATH/include \
     # --with-giflib-libraries=$OUT_PATH/lib
     # Make
