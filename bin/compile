@@ -111,6 +111,8 @@ function get_and_build_vips {
     # gtkdocize() { return 0; }
     # HERE IS GTKDOCIZE: edit: it's completely missing.
     # echo $(find_missing_executable gtkdocize)
+    mkdir -p /usr/share/aclocal/
+    cp /tmp/build/.apt/usr/share/aclocal/gtk-doc.m4 /usr/share/aclocal/
     ./autogen.sh --prefix $OUT_PATH --disable-gtk-doc --disable-gtk-doc-html --disable-gtk-doc-pdf --without-magick --disable-dependency-tracking --disable-static --disable-debug
     # ./configure --help  # remove or comment me out; shows possible options
     # ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-magick --without-analyze --without-radiance
