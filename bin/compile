@@ -66,6 +66,7 @@ function get_and_build_vips {
     local version="$3"
     vipsdirname="vips-$version"
     # Download vips source if it's not already there, or if it's forced
+force_fetch=true # for debugging
     if [ "${force_fetch}" = true ]; then
       echo "Forcing redownload of vips"
     fi
