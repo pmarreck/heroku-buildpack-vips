@@ -40,11 +40,13 @@ source ${buildpack_path}/lib/helper_funcs.sh
 # apt deps #
 ############
 
-function install_apt_deps {
-  # apt install everything in the Aptfile, filtering out comments and :repo:'s
-  # Went this route because I couldn't figure out how to get this buildpack to depend on the apt buildpack and work that way
-  cat ${buildpack_path}/Aptfile | grep -v -s -e '^#' | grep -v -s -e "^:repo:" | xargs apt install -y
-}
+# back to the apt buildpack we go...
+
+# function install_apt_deps {
+#   # apt install everything in the Aptfile, filtering out comments and :repo:'s
+#   # Went this route because I couldn't figure out how to get this buildpack to depend on the apt buildpack and work that way
+#   cat ${buildpack_path}/Aptfile | grep -v -s -e '^#' | grep -v -s -e "^:repo:" | xargs apt install -y
+# }
 
 ############
 #   RUST   #
@@ -112,7 +114,7 @@ force_fetch=true # for debugging
     popd # cache_path
 }
 
-install_apt_deps
+# install_apt_deps
 get_rust
 get_and_build_vips $BUILD_DIR $CACHE_DIR $VIPS_VERSION
 
