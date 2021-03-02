@@ -112,7 +112,7 @@ force_fetch=true # for debugging
     popd # cache_path
 }
 
-# install_apt_deps
+install_apt_deps
 get_rust
 get_and_build_vips $BUILD_DIR $CACHE_DIR $VIPS_VERSION
 
