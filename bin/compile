@@ -45,20 +45,26 @@ function get_and_build_vips {
     cache_path="$2"
     local version="$3"
     vipsdirname="vips-$version"
-    # Download vips source if it's not already there
+    # Download vips source if it's not already there, or if it's forced
+    # TODO: not hardcode it to true here; had to do this when switching from git download to tar download
+    force_fetch=true
+    if [ "${force_fetch}" = true ]; then
+      echo "Forcing redownload of vips"
+    fi
     if [ "${force_fetch}" = true ] || [ ! -d "${cache_path}/${vipsdirname}" ]; then
       clean_vips_downloads $cache_path
       vips_changed=true
       pushd $cache_path
-      echo "Downloading vips source via git clone depth 1 with branch/tag v$version" | arrow
-      git clone --depth 1 -b "v$version" git://github.com/libvips/libvips.git ${vipsdirname}
+      # echo "Downloading vips source via git clone depth 1 with branch/tag v$version" | arrow
+      echo "Downloading vips source from github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz ..."
+      curl -L https://github.com/libvips/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz -o $vipsdirname.tar.gz
+      # unzip
+      tar -xvf $vipsdirname.tar.gz
+      # git clone --depth 1 -b "v$version" git://github.com/libvips/libvips.git ${vipsdirname}
       popd #$cache_path
     else
       output_section "Using cached ${vipsdirname}"
     fi
-    # curl -L https://github.com/jcupitt/libvips/releases/download/v$VIPS_VERSION/vips-$VIPS_VERSION.tar.gz -o vips-$VIPS_VERSION.tar.gz
-    # Unzip
-    # tar -xvf vips-$VIPS_VERSION.tar.gz
     # Get into vips folder
     pushd $cache_path
     pushd $vipsdirname
@@ -68,10 +74,10 @@ function get_and_build_vips {
     # the || : is like an "or true", forces find to not exitcode 1 if there's a permissions error
     # gtkdocmake=$(find / -name gtk-doc.make -print -quit 2>/dev/null || : )
     # echo "gtkdocmake is at: $gtkdocmake"
-    cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
-    touch doc/gtk-doc.make
-    autoreconf -fvi || :
-    ./autogen.sh
+    # cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
+    # touch doc/gtk-doc.make
+    # autoreconf -fvi || :
+    # ./autogen.sh
     ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-python --without-magick --without-analyze --without-radiance
     # --with-giflib-includes=$OUT_PATH/include \
     # --with-giflib-libraries=$OUT_PATH/lib
