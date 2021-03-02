@@ -52,7 +52,8 @@ function install_apt_deps {
 
 function get_rust {
   curl https://sh.rustup.rs -sSf | sh -s -- -y
-  export PATH="$HOME/.cargo/bin:$PATH"
+  source $HOME/.cargo/env
+  # export PATH="$HOME/.cargo/bin:$PATH"
 }
 
 ###############
@@ -110,7 +111,7 @@ function get_and_build_vips {
     popd # cache_path
 }
 
-install_apt_deps
+# install_apt_deps
 get_rust
 get_and_build_vips $BUILD_DIR $CACHE_DIR $VIPS_VERSION
 
