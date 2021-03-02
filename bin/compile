@@ -105,7 +105,7 @@ function get_and_build_vips {
     # echo "gtkdocmake is at: $gtkdocmake"
     # cp /tmp/build/.apt/usr/share/gtk-doc/data/gtk-doc.make doc/ || :
     # touch doc/gtk-doc.make
-    autoreconf -fvi || :
+    # autoreconf -fvi || :
     # neuter gtkdocize which won't fucking install to PATH for some reason despite using the right apt dependency
     # also, we don't need docs
     # also, this didn't work inside autogen.sh for some strange reason
