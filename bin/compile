@@ -103,7 +103,7 @@ function get_and_build_vips {
     # also, this didn't work inside autogen.sh for some strange reason
     # gtkdocize() { return 0; }
     # HERE IS GTKDOCIZE:
-    echo find_missing_executable gtkdocize
+    echo $(find_missing_executable gtkdocize)
     ./autogen.sh --prefix $OUT_PATH --disable-gtk-doc --disable-gtk-doc-html --disable-gtk-doc-pdf --without-magick --disable-dependency-tracking --disable-static --disable-debug
     # ./configure --help  # remove or comment me out; shows possible options
     # ./configure --prefix $OUT_PATH --enable-shared --disable-static --disable-dependency-tracking --disable-debug --disable-introspection --without-magick --without-analyze --without-radiance
