@@ -99,7 +99,7 @@ function get_and_build_vips {
     pushd $vipsdirname
     # Configure build and output everything
     echo "Configuring vips" | arrow
-    cp /usr/share/gtk-doc/data/gtk-doc.make doc/
+    # cp /usr/share/gtk-doc/data/gtk-doc.make doc/
     # the || : is like an "or true", forces find to not exitcode 1 if there's a permissions error
     # gtkdocmake=$(find / -name gtk-doc.make -print -quit 2>/dev/null || : )
     # echo "gtkdocmake is at: $gtkdocmake"
