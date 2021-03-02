@@ -37,6 +37,16 @@ source ${buildpack_path}/lib/helper_funcs.sh
 # vendor "wget https://www.m-kast.com/files/libvips-8.7.0-ubuntu18.04.tgz" "$BUILD_DIR/vendor/vips" # FIXME: unharcode version
 
 ############
+# apt deps #
+############
+
+function install_apt_deps {
+  # apt install everything in the Aptfile, filtering out comments and :repo:'s
+  # Went this route because I couldn't figure out how to get this buildpack to depend on the apt buildpack and work that way
+  cat ${buildpack_path}/Aptfile | grep -v -s -e '^#' | grep -v -s -e "^:repo:" | xargs sudo apt install -y
+}
+
+############
 #   RUST   #
 ############
 
@@ -100,6 +110,7 @@ function get_and_build_vips {
     popd # cache_path
 }
 
+install_apt_deps
 get_rust
 get_and_build_vips $BUILD_DIR $CACHE_DIR $VIPS_VERSION
 
